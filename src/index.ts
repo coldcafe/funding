@@ -30,11 +30,13 @@ async function binanceFunding(coin: string, limit = 90) {
     totalRate += parseFloat(i.lastFundingRate);
   });
   totalRate = totalRate * 100;
-  return totalRate.toFixed(3) + '%';
+  const yearRate = (totalRate / resp.data.data.length) * 3 * 365
+  return totalRate.toFixed(3) + '%' + ' (年化' + yearRate.toFixed(3) + '%)';
 }
 
 async function okexFunding(coin: string, limit = 90) {
   let totalRate = 0;
+  let count = 0;
   let lastOneTime;
   for (let i = 0; i < Math.ceil(limit/100); i++) {
     const params = {
@@ -50,14 +52,17 @@ async function okexFunding(coin: string, limit = 90) {
       params
     });
     resp.data.data.forEach(i => {
+      count++;
       totalRate += parseFloat(i.realizedRate);
     });
   }
   totalRate = totalRate * 100;
-  return totalRate.toFixed(3) + '%';
+  const yearRate = (totalRate / count) * 3 * 365
+  return totalRate.toFixed(3) + '%' + ' (年化' + yearRate.toFixed(3) + '%)';
 }
 
 async function huobiFunding(coin: string, limit = 90) {
+  let count = 0;
   let totalRate = 0;
   for (let i = 0; i < Math.ceil(limit/50); i++) {
     const params = {
@@ -71,17 +76,19 @@ async function huobiFunding(coin: string, limit = 90) {
       params
     });
     resp.data.data.data.forEach(i => {
+      count++;
       totalRate += parseFloat(i.realized_rate);
     });
   }
   totalRate = totalRate * 100;
-  return totalRate.toFixed(3) + '%';
+  const yearRate = (totalRate / count) * 3 * 365;
+  return totalRate.toFixed(3) + '%' + ' (年化' + yearRate.toFixed(3) + '%)';
 }
 
 (async () => {
-  const day = 5;
+  const day = 7;
   console.log(`币本位合约最近${day}天资金费率总计：`);
-  console.log('   ', 'binance', '  okex', '   huobi')
+  console.log('   ', 'binance', '               okex', '                  huobi')
   const coinList = ['BTC', 'ETH', 'LINK', 'TRX', 'DOT', 'ADA', 'EOS', 'LTC', 'BCH', 'XRP', 'ETC', 'FIL'];
   for (const coin of coinList) {
     console.log(coin, await binanceFunding(coin, day * 3), ' ', await okexFunding(coin, day * 3), ' ', await huobiFunding(coin, day * 3));
